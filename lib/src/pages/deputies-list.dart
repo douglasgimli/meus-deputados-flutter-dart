@@ -1,4 +1,6 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
+import '../services/deputy.dart';
 
 class DeputiesList extends StatelessWidget {
   @override
@@ -23,64 +25,101 @@ class ListDeputiesPage extends StatefulWidget {
 }
 
 class _ListDeputiesState extends State<ListDeputiesPage> {
+  ScrollController controller;
+  List items = new List();
+
+  @override
+  void initState() {
+    controller = new ScrollController()..addListener(_scrollListener);
+    _printDeputies();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    controller.removeListener(_scrollListener);
+    super.dispose();
+  }
+
+  _printDeputies() async {
+    try {
+      List deputies = await fetchDeputies();
+      setState(() {
+        items.addAll(deputies);
+        print(items.length);
+      });
+    } catch (e) {
+    }
+  }
+
+  void _scrollListener() {
+    if (controller.position.extentAfter < 500) {
+      _printDeputies();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return new Scaffold(
       appBar: new AppBar(
         title: new Text(widget.title),
       ),
-      body: _buildDeputiesList(),
+      body:  new Scrollbar(
+        child: _buildDeputiesList(),
+      )
     );
   }
 
   Widget _buildDeputiesList() {
     return new ListView.builder(
+      controller: controller,
       padding: const EdgeInsets.all(16.0),
       itemBuilder: (context, i) {
-        // return new Divider();
-        return _buildDeputyRow();
+        if (items.length > 0) {
+          return _buildDeputyRow(items[i]);
+        }
+        return new CircularProgressIndicator();
       },
-      itemCount: 2,
+      itemCount: items.length,
     );
   }
 
-  Widget _buildDeputyRow() {
-    return new Container(
-      padding: const EdgeInsets.all(20.0),
-      child: new Row(
-        children: <Widget>[
-          new Column(
-            children: <Widget>[
-              new CircleAvatar(
+  Widget _buildDeputyRow(Deputy deputy) {
+    return new Card(
+      child: new Container(
+        padding: const EdgeInsets.all(20.0),
+        child: new Row(
+          children: <Widget>[
+            new Container(
+              child: new CircleAvatar(
                 backgroundColor: Colors.amber,
+                backgroundImage:  new NetworkImage(deputy.picture),
               )
-            ],
-          ),
-          new Column(
-            children: <Widget>[
-              new Container(
-                padding: const EdgeInsets.all(20.0),
-                child: new Row(
+            ),
+            new Expanded(
+              child: new Container(
+                padding: const EdgeInsets.only(left: 20.0),
+                child: new Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    new Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        new Text(
-                          'Meu deputado',
-                          style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w200),
-                        ),
-                        new Text(
-                          'Informações do deputado',
-                          style: new TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal),
-                        )
-                      ]
+                    new Text(
+                      deputy.name,
+                      style: new TextStyle(fontSize: 18.0, fontWeight: FontWeight.w200),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    new Text(
+                      deputy.stateInitials,
+                      style: new TextStyle(fontSize: 14.0, fontWeight: FontWeight.normal),
                     )
-                  ],
+                  ]
                 )
-              )
-            ],
-          )
-        ],
+              ),
+            ),
+            new Container(
+              child: new Icon(Icons.favorite_border, color: Colors.black45)
+            ),
+          ],
+        )
       )
     );
   }
