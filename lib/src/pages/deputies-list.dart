@@ -27,6 +27,8 @@ class ListDeputiesPage extends StatefulWidget {
 class _ListDeputiesState extends State<ListDeputiesPage> {
   ScrollController controller;
   List items = new List();
+  int page = 1;
+  bool fetchingDeputies = false;
 
   @override
   void initState() {
@@ -42,18 +44,19 @@ class _ListDeputiesState extends State<ListDeputiesPage> {
   }
 
   _printDeputies() async {
-    try {
-      List deputies = await fetchDeputies();
-      setState(() {
-        items.addAll(deputies);
-        print(items.length);
-      });
-    } catch (e) {
-    }
+    List deputies = await fetchDeputies(page);
+    setState(() {
+      page++;
+      items.addAll(deputies);
+      fetchingDeputies = false;
+    });
   }
 
   void _scrollListener() {
-    if (controller.position.extentAfter < 500) {
+    if (controller.position.extentAfter < 500 && !fetchingDeputies) {
+      setState(() {
+        fetchingDeputies = true;
+      });
       _printDeputies();
     }
   }

@@ -3,8 +3,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
-Future<List> fetchDeputies() async {
-  final response = await http.get('https://dadosabertos.camara.leg.br/api/v2/deputados?ordenarPor=nome&itens=9999999');
+Future<List> fetchDeputies(int page) async {
+  final response = await http.get('https://dadosabertos.camara.leg.br/api/v2/deputados?ordenarPor=nome&itens=100&pagina=' + page.toString());
   final responseJson = json.decode(response.body);
   final deputies = responseJson['dados'].map((deputyData) => new Deputy.fromJson(deputyData)).toList();
   return deputies;
