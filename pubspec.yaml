@@ -3,6 +3,7 @@ description: A new Flutter project.
 
 dependencies:
   http: ^0.11.3+16
+  shared_preferences: ^0.4.1
   flutter:
     sdk: flutter
 
